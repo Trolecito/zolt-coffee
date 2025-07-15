@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .animate-cart-fly {
+    animation: cart-fly 0.8s ease-in-out forwards;
+  }
+  
+  @keyframes cart-fly {
+    0% {
+      transform: translate(0, 0) scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: translate(var(--end-x, 0), var(--end-y, 0)) scale(0.8);
+      opacity: 0.8;
+    }
+    100% {
+      transform: translate(var(--end-x, 0), var(--end-y, 0)) scale(0.3);
+      opacity: 0;
+    }
+  }
+  
+  .cart-bounce {
+    animation: cart-bounce 0.8s ease-in-out;
+  }
+  
+  @keyframes cart-bounce {
+    0%, 100% {
+      transform: scale(1);
+    }
+    25% {
+      transform: scale(1.3) rotate(-5deg);
+    }
+    50% {
+      transform: scale(1.4) rotate(5deg);
+    }
+    75% {
+      transform: scale(1.2) rotate(-2deg);
+    }
+  }
+}

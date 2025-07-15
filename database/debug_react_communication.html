@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug React-PHP Communication</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        .info { color: blue; }
+        button { padding: 10px 20px; margin: 10px; background: #007cba; color: white; border: none; cursor: pointer; }
+        button:hover { background: #005a87; }
+        pre { background: #f0f0f0; padding: 10px; border-radius: 5px; }
+        .test-section { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Debug: Comunicación React-PHP</h1>
+    
+    <div class="test-section">
+        <h2>1. Test de CORS</h2>
+        <button onclick="testCORS()">Probar CORS</button>
+        <div id="cors-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Test de Registro</h2>
+        <button onclick="testRegister()">Probar Registro</button>
+        <div id="register-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Test de Login</h2>
+        <button onclick="testLogin()">Probar Login</button>
+        <div id="login-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. Información del Sistema</h2>
+        <div id="system-info">
+            <p><strong>URL actual:</strong> <span id="current-url"></span></p>
+            <p><strong>User Agent:</strong> <span id="user-agent"></span></p>
+            <p><strong>Fecha/Hora:</strong> <span id="datetime"></span></p>
+        </div>
+    </div>
+
+    <script>
+        // Mostrar información del sistema
+        document.getElementById('current-url').textContent = window.location.href;
+        document.getElementById('user-agent').textContent = navigator.userAgent;
+        document.getElementById('datetime').textContent = new Date().toLocaleString();
+
+        async function testCORS() {
+            const resultDiv = document.getElementById('cors-result');
+            resultDiv.innerHTML = '<p class="info">🔄 Probando CORS...</p>';
+            
+            try {
+                const response = await fetch('http://localhost/zolt_coffee/database/cors_test.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        test: 'cors',
+                        timestamp: new Date().toISOString()
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ CORS funcionando correctamente</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <p class="error">❌ Error en CORS</p>
+                        <pre>Status: ${response.status}\n${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <p class="error">❌ Error de conexión</p>
+                    <pre>${error.message}</pre>
+                    <p><strong>Posibles causas:</strong></p>
+                    <ul>
+                        <li>Apache no está ejecutándose</li>
+                        <li>Archivo PHP no existe en la ruta correcta</li>
+                        <li>Problema de CORS</li>
+                    </ul>
+                `;
+            }
+        }
+
+        async function testRegister() {
+            const resultDiv = document.getElementById('register-result');
+            resultDiv.innerHTML = '<p class="info">🔄 Probando registro...</p>';
+            
+            const testEmail = 'test_' + Date.now() + '@example.com';
+            
+            try {
+                const response = await fetch('http://localhost/zolt_coffee/api/auth.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'register',
+                        name: 'Usuario Test',
+                        email: testEmail,
+                        password: 'password123'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ Registro exitoso</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <p class="error">❌ Error en registro</p>
+                        <pre>Status: ${response.status}\n${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <p class="error">❌ Error de conexión en registro</p>
+                    <pre>${error.message}</pre>
+                `;
+            }
+        }
+
+        async function testLogin() {
+            const resultDiv = document.getElementById('login-result');
+            resultDiv.innerHTML = '<p class="info">🔄 Probando login...</p>';
+            
+            try {
+                // Primero crear un usuario para hacer login
+                const registerResponse = await fetch('http://localhost/zolt_coffee/api/auth.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'register',
+                        name: 'Usuario Login Test',
+                        email: 'login_test_' + Date.now() + '@example.com',
+                        password: 'password123'
+                    })
+                });
+                
+                const registerData = await registerResponse.json();
+                
+                if (registerData.success) {
+                    // Ahora hacer login
+                    const loginResponse = await fetch('http://localhost/zolt_coffee/api/auth.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            action: 'login',
+                            email: registerData.user.email,
+                            password: 'password123'
+                        })
+                    });
+                    
+                    const loginData = await loginResponse.json();
+                    
+                    if (loginResponse.ok && loginData.success) {
+                        resultDiv.innerHTML = `
+                            <p class="success">✅ Login exitoso</p>
+                            <pre>${JSON.stringify(loginData, null, 2)}</pre>
+                        `;
+                    } else {
+                        resultDiv.innerHTML = `
+                            <p class="error">❌ Error en login</p>
+                            <pre>Status: ${loginResponse.status}\n${JSON.stringify(loginData, null, 2)}</pre>
+                        `;
+                    }
+                } else {
+                    resultDiv.innerHTML = `
+                        <p class="error">❌ Error al crear usuario para login</p>
+                        <pre>${JSON.stringify(registerData, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <p class="error">❌ Error de conexión en login</p>
+                    <pre>${error.message}</pre>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
