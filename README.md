@@ -1,4 +1,4 @@
-# Zolt Coffee - Sistema de Pedidos
+# Cafeteria - Sistema de Pedidos
 
 Una aplicación web moderna para pedidos de café con sistema de tickets y notificaciones por email.
 
